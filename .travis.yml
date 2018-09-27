@@ -2,7 +2,7 @@ language: cpp
 sudo: required
 os: osx
 compiler:
-# - gcc
+- gcc
 - clang
 env:
   - BUILD_TARGET=Debug

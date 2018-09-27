@@ -4,12 +4,14 @@ set -e
 
 export HOMEBREW_NO_AUTO_UPDATE=1
 
+# Needed for GCC 9 to work, see https://github.com/trinityrnaseq/trinityrnaseq/issues/599
+# TODO Still needed?
+softwareupdate --install "Command Line Tools (macOS High Sierra version 10.13) for Xcode-10.1"
+
+
 # Install newer GCC if we're running on GCC
-if [ "${CXX}" == "g++" ]; then
-    # We need to uninstall oclint because it creates a /usr/local/include/c++ symlink that clashes with the gcc5 package
-    # see https://github.com/Homebrew/homebrew-core/issues/21172
-    brew cask uninstall oclint
-    brew install gcc@7
+if [ "${CXX}" == "g++-9" ]; then
+    brew install gcc@9
 fi
 
 brew cask install osxfuse

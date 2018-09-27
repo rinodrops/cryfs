@@ -2,11 +2,11 @@
 
 set -ev
 
-# If using gcc on mac, actually use it ("gcc" just links to clang, but "gcc-4.8" is gcc, https://github.com/travis-ci/travis-ci/issues/2423)
+# If using gcc on mac, actually use it ("gcc" just links to clang, but "gcc-9" is gcc, see https://github.com/travis-ci/travis-ci/issues/2423 and See https://docs.travis-ci.com/user/languages/c/#gcc-on-macos)
 # Note: This must be here and not in install.sh, because environment variables can't be passed between scripts.
 if [ "${CXX}" == "g++" ]; then
   echo Switch to actual g++ and not just the AppleClang symlink
-  export CXX="g++-7" CC="gcc-7"
+  export CXX="g++-9" CC="gcc-9"
 else
   echo Do not switch to actual g++ because we are not g++
 fi
