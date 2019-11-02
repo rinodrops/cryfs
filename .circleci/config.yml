@@ -57,7 +57,11 @@ references:
         sudo chmod o-w /etc/apt/sources.list.d/clang.list
 
         DEBIAN_FRONTEND=noninteractive sudo apt-get update -qq
-        DEBIAN_FRONTEND=noninteractive sudo apt-get install -y git ccache $APT_COMPILER_PACKAGE make libcurl4-openssl-dev libssl-dev libfuse-dev
+        DEBIAN_FRONTEND=noninteractive sudo apt-get install -y git snapd $APT_COMPILER_PACKAGE make libcurl4-openssl-dev libssl-dev libfuse-dev
+        # We install ccache from snap because the apt version had some issues and failed our CI runs, see https://stackoverflow.com/questions/47094843/clang-warning-argument-unused-during-compilation-stdlib-libc 
+        sudo snap install ccache --classic
+        which ccache
+        ccache --version
 
         # install cmake
         wget -O /tmp/cmake.sh https://github.com/Kitware/CMake/releases/download/v3.6.3/cmake-3.6.3-Linux-x86_64.sh
