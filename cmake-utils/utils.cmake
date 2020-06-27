@@ -7,8 +7,8 @@ include(CheckCXXCompilerFlag)
 ###################################################
 function(target_activate_cpp14 TARGET)
     if(MSVC)
-        # Required by range-v3, see its README.md
-        set_property(TARGET ${TARGET} PROPERTY CXX_STANDARD 17)
+        # /std:c++latest is required by range-v3, see release notes in https://github.com/ericniebler/range-v3/releases/tag/0.10.0
+        set_property(TARGET ${TARGET} PROPERTY CXX_STANDARD 20)
     else()
         set_property(TARGET ${TARGET} PROPERTY CXX_STANDARD 14)
     endif()

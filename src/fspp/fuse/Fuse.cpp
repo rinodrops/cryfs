@@ -311,8 +311,8 @@ void extractAllAtimeOptionsAndRemoveOnesUnknownToLibfuse_(string* csv_options, v
         return flags.end() != std::find(flags.begin(), flags.end(), flag);
     };
     *csv_options = *csv_options
-        | ranges::view::split(',')
-        | ranges::view::filter(
+        | ranges::views::split(',')
+        | ranges::views::filter(
             [&] (const std::string& elem) {
                 if (is_fuse_unsupported_atime_flag(elem)) {
                     result->push_back(elem);
@@ -323,7 +323,7 @@ void extractAllAtimeOptionsAndRemoveOnesUnknownToLibfuse_(string* csv_options, v
                 }
                 return true;
             })
-        | ranges::view::join(',')
+        | ranges::views::join(',')
         | ranges::to<string>();
 }
 

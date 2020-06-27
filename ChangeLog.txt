@@ -22,6 +22,9 @@ Fixed bugs:
 * Fixed determining the user's homedir: If $HOME and the /etc/passwd entry for the current user contradict each other, now $HOME takes preference over /etc/passwd.
 * Fix Android compilation, https://github.com/cryfs/cryfs/issues/345
 
+Other:
+* Updated to range-v3 0.10.0
+* Updated to spdlog 1.6.1
 
 Version 0.10.2
 ---------------
