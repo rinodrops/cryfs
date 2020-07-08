@@ -131,16 +131,16 @@ references:
 
         echo Download range-v3
         cd ~
-        wget https://github.com/ericniebler/range-v3/archive/0.9.1.tar.gz -O range-v3-0.9.1.tar.gz
-        if [ $(sha512sum range-v3-0.9.1.tar.gz | awk '{print $1;}') == "167db645527b769f3d375db63bb0a5c831e9c854bc729581a7d25c571cc1741eafb82812006c5bbe346222a73d5fbbd0b2f17119317038394ac15cf892088aa3" ]; then
+        wget https://github.com/ericniebler/range-v3/archive/0.10.0.tar.gz -O range-v3-0.10.0.tar.gz
+        if [ $(sha512sum range-v3-0.10.0.tar.gz | awk '{print $1;}') == "4db089dcbf638eb30fa20dcf6785dd460c5a074a8912984a484592753cfee9f5b9a0e2c56b5bc5921d1b6120877aa2c83ac0a6fe428088ef2854033a635e9723" ]; then
           echo Correct sha512sum
         else
           echo Wrong sha512sum
-          sha512sum range-v3-0.9.1.tar.gz
+          sha512sum range-v3-0.10.0.tar.gz
           exit 1
         fi
-        tar -xvf range-v3-0.9.1.tar.gz
-        cd range-v3-0.9.1/
+        tar -xvf range-v3-0.10.0.tar.gz
+        cd range-v3-0.10.0/
 
         echo Install range-v3
         mkdir build
