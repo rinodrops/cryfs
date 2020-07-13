@@ -148,6 +148,9 @@ references:
         cmake .. -DRANGES_HAS_WERROR=off -DRANGE_V3_EXAMPLES=off -DRANGE_V3_TESTS=off
         make -j$NUMCORES
         sudo make install
+        cd ~
+        rm -r range-v3-0.10.0
+        rm range-v3-0.10.0.tar.gz
 
         echo Download spdlog
         cd ~
