@@ -12,6 +12,7 @@ softwareupdate --install "Command Line Tools (macOS High Sierra version 10.13) f
 # Install newer GCC if we're running on GCC
 if [ "${CXX}" == "g++-9" ]; then
     brew install gcc@9
+    conan profile update settings.compiler.libcxx=libstdc++ default
 fi
 
 brew cask install osxfuse
