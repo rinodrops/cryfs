@@ -1,0 +1,17 @@
+[package]
+authors = ["Sebastian Messmer <messmer@cryfs.org>"]
+edition = "2018"
+name = "cryfs-cli"
+version = "0.1.0"
+
+[dependencies]
+cxx = "1.0.27"
+
+[build-dependencies]
+cxx-build = "1.0.27"
+
+[lib]
+crate-type = ["staticlib"]
+
+[profile.release]
+lto = "fat"

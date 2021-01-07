@@ -14,6 +14,9 @@
 #include <cryfs/impl/config/CryConfigLoader.h>
 #include <cryfs/impl/ErrorCodes.h>
 
+void hello_from_cpp();
+void hello_from_cpp_2();
+
 namespace cryfs_cli {
     class Cli final {
     public:
