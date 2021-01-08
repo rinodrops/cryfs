@@ -39,3 +39,12 @@ target_link_libraries(${PROJECT_NAME} PUBLIC cpp-utils)
 target_add_boost(${PROJECT_NAME} filesystem system thread)
 target_enable_style_warnings(${PROJECT_NAME})
 target_activate_cpp14(${PROJECT_NAME})
+
+include (rust)
+target_add_rust_companion(
+    blockstore
+    RUST_LIB_NAME "libcryfs_blockstore.a"
+    RUST_CRATE_NAME "cryfs-blockstore"
+    RUST_BRIDGES "src/lib.rs"
+    RUST_DIR "rust"
+)

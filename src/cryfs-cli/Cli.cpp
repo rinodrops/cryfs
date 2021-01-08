@@ -69,16 +69,6 @@ using gitversion::VersionCompare;
 //TODO Replace ASSERTs with other error handling when it is not a programming error but an environment influence (e.g. a block is missing)
 //TODO Can we improve performance by setting compiler parameter -maes for scrypt?
 
-void hello_from_cpp()
-{
-    std::cout << "Hello from CPP" << std::endl;
-}
-
-void hello_from_cpp_2()
-{
-    std::cout << "Hello from CPP 2" << std::endl;
-}
-
 namespace cryfs_cli {
 
     Cli::Cli(RandomGenerator &keyGenerator, const SCryptSettings &scryptSettings, shared_ptr<Console> console):

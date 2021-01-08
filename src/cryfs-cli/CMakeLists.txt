@@ -30,12 +30,3 @@ install(TARGETS ${PROJECT_NAME}_bin
         CONFIGURATIONS Debug Release RelWithDebInfo
         DESTINATION ${CMAKE_INSTALL_BINDIR}
 )
-
-include (rust)
-target_add_rust_companion(
-    cryfs-cli
-    RUST_LIB_NAME "libcryfs_cli.a"
-    RUST_CRATE_NAME "cryfs-cli"
-    RUST_BRIDGES "src/lib.rs" "src/lib2.rs"
-    RUST_DIR "rust"
-)

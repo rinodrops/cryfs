@@ -10,9 +10,6 @@
 #include <cpp-utils/network/CurlHttpClient.h>
 #endif
 
-#include "cxxbridge/cryfs-cli/src/lib.rs.h"
-#include "cxxbridge/cryfs-cli/src/lib2.rs.h"
-
 using namespace cryfs_cli;
 using cpputils::Random;
 using cpputils::SCrypt;
@@ -22,9 +19,6 @@ using std::make_shared;
 using std::cerr;
 
 int main(int argc, const char *argv[]) {
-    std::cout << std::string(hello_from_rust()) << std::endl;
-    std::cout << std::string(hello_from_rust_2()) << std::endl;
-
 #if defined(_MSC_VER)
     if (!IsWindows7SP1OrGreater()) {
        std::cerr << "CryFS is currently only supported on Windows 7 SP1 (or later)." << std::endl;
