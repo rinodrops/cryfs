@@ -23,6 +23,7 @@ function(target_add_rust_companion TARGET_NAME)
         set(CARGO_CMD cargo build)
         set(TARGET_DIR "debug")
     else ()
+        # TODO RelWithDebInfo, MinSizeRel
         set(CARGO_CMD cargo build --release)
         set(TARGET_DIR "release")
     endif ()
@@ -64,6 +65,7 @@ function(target_add_rust_companion TARGET_NAME)
     file(GLOB_RECURSE RUST_SOURCE_FILES
         "${CMAKE_CURRENT_SOURCE_DIR}/${ARGS_RUST_DIR}/*"
     )
+    list(FILTER RUST_SOURCE_FILES EXCLUDE REGEX "/target/")
     add_custom_command(
         OUTPUT ${RUST_BRIDGE_CPP_FILES}
         COMMAND CARGO_TARGET_DIR=${CMAKE_CURRENT_BINARY_DIR}/${ARGS_RUST_DIR} RUSTFLAGS="${RUST_FLAGS}" ${CARGO_CMD}

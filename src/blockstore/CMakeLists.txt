@@ -30,6 +30,7 @@ set(SOURCES
   implementations/integrity/ClientIdAndBlockId.cpp
   implementations/mock/MockBlockStore.cpp
   implementations/mock/MockBlock.cpp
+  implementations/rustbridge/RustBlockStore2.cpp
 )
 
 add_library(${PROJECT_NAME} STATIC ${SOURCES})
