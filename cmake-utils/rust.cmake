@@ -34,8 +34,6 @@ function(target_add_rust_companion TARGET_NAME)
     add_library("${TARGET_NAME}_rustcompanion" STATIC ${RUST_BRIDGE_CPP_FILES})
     target_include_directories("${TARGET_NAME}_rustcompanion" INTERFACE ${CMAKE_CURRENT_BINARY_DIR}/${ARGS_RUST_DIR})
 
-    # add a cyclic dependency between the rust and the cpp target so that both can call into each other
-    target_link_libraries("${TARGET_NAME}_rustcompanion" PUBLIC ${TARGET_NAME})
     target_link_libraries("${TARGET_NAME}" PUBLIC "${TARGET_NAME}_rustcompanion")
 
     # Enable cross-language LTO if the target wants lto
