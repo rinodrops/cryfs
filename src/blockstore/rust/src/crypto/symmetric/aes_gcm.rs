@@ -22,11 +22,16 @@ impl<C: NewAead> EncryptionKey for AesKey<C> {
 }
 
 pub struct AESGCM<C: NewAead + Aead> {
-    _phantom: PhantomData<C>,
+    cipher: C,
 }
 
 impl<C: NewAead + Aead> Cipher for AESGCM<C> {
     type EncryptionKey = AesKey<C>;
+
+    fn new(encryption_key: Self::EncryptionKey) -> Self {
+        let cipher = C::new(&encryption_key.0);
+        Self {cipher}
+    }
 
     fn ciphertext_size(plaintext_size: usize) -> usize {
         plaintext_size + C::NonceSize::USIZE + C::TagSize::USIZE
@@ -39,11 +44,10 @@ impl<C: NewAead + Aead> Cipher for AESGCM<C> {
         ciphertext_size - C::NonceSize::USIZE - C::TagSize::USIZE
     }
 
-    fn encrypt(plaintext: &[u8], key: &Self::EncryptionKey) -> Result<Vec<u8>> {
-        let cipher = C::new(&key.0);
+    fn encrypt(&self, plaintext: &[u8]) -> Result<Vec<u8>> {
         let ciphertext_size = Self::ciphertext_size(plaintext.len());
         let nonce = random_nonce();
-        let cipherdata = cipher.encrypt(&nonce, plaintext)?;
+        let cipherdata = self.cipher.encrypt(&nonce, plaintext)?;
         let mut ciphertext = Vec::with_capacity(ciphertext_size);
         ciphertext.extend_from_slice(&nonce);
         ciphertext.extend(cipherdata); // TODO Is there a way to encrypt it without copying here? Or does it even matter?
@@ -51,11 +55,10 @@ impl<C: NewAead + Aead> Cipher for AESGCM<C> {
         Ok(ciphertext)
     }
 
-    fn decrypt(ciphertext: &[u8], key: &Self::EncryptionKey) -> Result<Vec<u8>> {
-        let cipher = C::new(&key.0);
+    fn decrypt(&self, ciphertext: &[u8]) -> Result<Vec<u8>> {
         let nonce = &ciphertext[..C::NonceSize::USIZE];
         let cipherdata = &ciphertext[C::NonceSize::USIZE..];
-        let plaintext = cipher.decrypt(nonce.into(), cipherdata)?;
+        let plaintext = self.cipher.decrypt(nonce.into(), cipherdata)?;
         assert_eq!(Self::plaintext_size(ciphertext.len()), plaintext.len());
         Ok(plaintext)
     }
@@ -83,16 +86,18 @@ mod tests {
 
     #[test]
     fn given_emptydata_when_encrypted_then_canbedecrypted() {
+        let cipher = Aes256Gcm::new(key1());
         let plaintext = vec![];
-        let ciphertext = Aes256Gcm::encrypt(&plaintext, &key1()).unwrap();
-        let decrypted_plaintext = Aes256Gcm::decrypt(&ciphertext, &key1()).unwrap();
+        let ciphertext = cipher.encrypt(&plaintext).unwrap();
+        let decrypted_plaintext = cipher.decrypt(&ciphertext).unwrap();
         assert_eq!(plaintext, decrypted_plaintext);
     }
 
     #[test]
     fn given_emptydata_then_sizecalculationsarecorrect() {
+        let cipher = Aes256Gcm::new(key1());
         let plaintext = vec![];
-        let ciphertext = Aes256Gcm::encrypt(&plaintext, &key1()).unwrap();
+        let ciphertext = cipher.encrypt(&plaintext).unwrap();
         assert_eq!(plaintext.len(), Aes256Gcm::plaintext_size(ciphertext.len()));
         assert_eq!(
             ciphertext.len(),
@@ -102,16 +107,18 @@ mod tests {
 
     #[test]
     fn given_somedata_when_encrypted_then_canbedecrypted() {
+        let cipher = Aes256Gcm::new(key1());
         let plaintext = hex::decode("0ffc9a43e15ccfbef1b0880167df335677c9005948eeadb31f89b06b90a364ad03c6b0859652dca960f8fa60c75747c4f0a67f50f5b85b800468559ea1a816173c0abaf5df8f02978a54b250bc57c7c6a55d4d245014722c0b1764718a6d5ca654976370").unwrap();
-        let ciphertext = Aes256Gcm::encrypt(&plaintext, &key1()).unwrap();
-        let decrypted_plaintext = Aes256Gcm::decrypt(&ciphertext, &key1()).unwrap();
+        let ciphertext = cipher.encrypt(&plaintext).unwrap();
+        let decrypted_plaintext = cipher.decrypt(&ciphertext).unwrap();
         assert_eq!(plaintext, decrypted_plaintext);
     }
 
     #[test]
     fn given_somedata_then_sizecalculationsarecorrect() {
+        let cipher = Aes256Gcm::new(key1());
         let plaintext = hex::decode("0ffc9a43e15ccfbef1b0880167df335677c9005948eeadb31f89b06b90a364ad03c6b0859652dca960f8fa60c75747c4f0a67f50f5b85b800468559ea1a816173c0abaf5df8f02978a54b250bc57c7c6a55d4d245014722c0b1764718a6d5ca654976370").unwrap();
-        let ciphertext = Aes256Gcm::encrypt(&plaintext, &key1()).unwrap();
+        let ciphertext = cipher.encrypt(&plaintext).unwrap();
         assert_eq!(plaintext.len(), Aes256Gcm::plaintext_size(ciphertext.len()));
         assert_eq!(
             ciphertext.len(),

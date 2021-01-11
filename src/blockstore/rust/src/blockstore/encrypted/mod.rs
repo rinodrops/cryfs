@@ -3,27 +3,25 @@ use sysinfo::{System, SystemExt};
 
 use super::{BlockId, BlockStore2};
 
-mod ciphers;
-
-pub use ciphers::{aes_gcm::Aes256Gcm, Cipher, EncryptionKey};
+use crate::crypto::symmetric::{aes_gcm::Aes256Gcm, Cipher, EncryptionKey};
 
 pub struct EncryptedBlockStore<C: Cipher, B: BlockStore2> {
     underlying_block_store: B,
-    encryption_key: C::EncryptionKey,
+    cipher: C,
 }
 
 impl<C: Cipher, B: BlockStore2> EncryptedBlockStore<C, B> {
-    pub fn new(underlying_block_store: B, encryption_key: C::EncryptionKey) -> Self {
+    pub fn new(underlying_block_store: B, cipher: C) -> Self {
         Self {
             underlying_block_store,
-            encryption_key,
+            cipher,
         }
     }
 }
 
 impl<C: Cipher, B: BlockStore2> BlockStore2 for EncryptedBlockStore<C, B> {
     fn try_create(&self, id: &BlockId, data: &[u8]) -> Result<bool> {
-        let ciphertext = C::encrypt(data, &self.encryption_key)?;
+        let ciphertext = self.cipher.encrypt(data)?;
         self.underlying_block_store.try_create(id, &ciphertext)
     }
 
@@ -35,12 +33,12 @@ impl<C: Cipher, B: BlockStore2> BlockStore2 for EncryptedBlockStore<C, B> {
         let loaded = self.underlying_block_store.load(id)?;
         match loaded {
             None => Ok(None),
-            Some(ciphertext) => Ok(Some(C::decrypt(&ciphertext, &self.encryption_key)?)),
+            Some(ciphertext) => Ok(Some(self.cipher.decrypt(&ciphertext)?)),
         }
     }
 
     fn store(&self, id: &BlockId, data: &[u8]) -> Result<()> {
-        let ciphertext = C::encrypt(data, &self.encryption_key)?;
+        let ciphertext = self.cipher.encrypt(data)?;
         self.underlying_block_store.store(id, &ciphertext)
     }
 

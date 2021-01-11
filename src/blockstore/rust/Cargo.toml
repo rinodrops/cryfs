@@ -10,6 +10,7 @@ anyhow = "^1.0.37"
 cxx = {version = "^1.0.27", features = ["c++14"]}
 hex = "0.4.2"
 rand = "^0.8.1"
+sodiumoxide = "^0.2.6"
 sysinfo = "^0.15.5"
 
 [build-dependencies]
