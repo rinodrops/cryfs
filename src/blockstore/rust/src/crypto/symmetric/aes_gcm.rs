@@ -1,7 +1,7 @@
 use aes_gcm::aead::generic_array::typenum::Unsigned;
 use aes_gcm::aead::{generic_array::ArrayLength, Aead, Key, NewAead, Nonce};
 use aes_gcm::Aes256Gcm as _Aes256Gcm;
-use anyhow::{anyhow, bail, Result};
+use anyhow::{anyhow, bail, Result, Context};
 use rand::{thread_rng, RngCore};
 use std::marker::PhantomData;
 
@@ -47,7 +47,7 @@ impl<C: NewAead + Aead> Cipher for AESGCM<C> {
     fn encrypt(&self, plaintext: &[u8]) -> Result<Vec<u8>> {
         let ciphertext_size = Self::ciphertext_size(plaintext.len());
         let nonce = random_nonce();
-        let cipherdata = self.cipher.encrypt(&nonce, plaintext)?;
+        let cipherdata = self.cipher.encrypt(&nonce, plaintext).context("Encrypting data failed")?;
         let mut ciphertext = Vec::with_capacity(ciphertext_size);
         ciphertext.extend_from_slice(&nonce);
         ciphertext.extend(cipherdata); // TODO Is there a way to encrypt it without copying here? Or does it even matter?
@@ -58,7 +58,7 @@ impl<C: NewAead + Aead> Cipher for AESGCM<C> {
     fn decrypt(&self, ciphertext: &[u8]) -> Result<Vec<u8>> {
         let nonce = &ciphertext[..C::NonceSize::USIZE];
         let cipherdata = &ciphertext[C::NonceSize::USIZE..];
-        let plaintext = self.cipher.decrypt(nonce.into(), cipherdata)?;
+        let plaintext = self.cipher.decrypt(nonce.into(), cipherdata).context("Decrypting data failed")?;
         assert_eq!(Self::plaintext_size(ciphertext.len()), plaintext.len());
         Ok(plaintext)
     }
@@ -80,6 +80,13 @@ mod tests {
     fn key1() -> <Aes256Gcm as Cipher>::EncryptionKey {
         AesKey::from_bytes(
             &hex::decode("9726ca3703940a918802953d8db5996c5fb25008a20c92cb95aa4b8fe92702d9")
+                .unwrap(),
+        )
+    }
+
+    fn key2() -> <Aes256Gcm as Cipher>::EncryptionKey {
+        AesKey::from_bytes(
+            &hex::decode("a3703940a918802953d8db5996c5fb25008a20c92cb95aa4b8fe92702d99726c")
                 .unwrap(),
         )
     }
@@ -126,5 +133,22 @@ mod tests {
         );
     }
 
-    // TODO Test encryption fails with wrong key, or wrong ciphertext
+    #[test]
+    fn given_invalidciphertext_then_doesntdecrypt() {
+        let cipher = Aes256Gcm::new(key1());
+        let plaintext = hex::decode("0ffc9a43e15ccfbef1b0880167df335677c9005948eeadb31f89b06b90a364ad03c6b0859652dca960f8fa60c75747c4f0a67f50f5b85b800468559ea1a816173c0abaf5df8f02978a54b250bc57c7c6a55d4d245014722c0b1764718a6d5ca654976370").unwrap();
+        let mut ciphertext = cipher.encrypt(&plaintext).unwrap();
+        ciphertext[20] += 1;
+        let decrypted_plaintext = cipher.decrypt(&ciphertext);
+        assert!(decrypted_plaintext.is_err());
+    }
+
+    #[test]
+    fn given_differentkey_then_doesntdecrypt() {
+        let cipher = Aes256Gcm::new(key1());
+        let plaintext = hex::decode("0ffc9a43e15ccfbef1b0880167df335677c9005948eeadb31f89b06b90a364ad03c6b0859652dca960f8fa60c75747c4f0a67f50f5b85b800468559ea1a816173c0abaf5df8f02978a54b250bc57c7c6a55d4d245014722c0b1764718a6d5ca654976370").unwrap();
+        let mut ciphertext = cipher.encrypt(&plaintext).unwrap();
+        let decrypted_plaintext = Aes256Gcm::new(key2()).decrypt(&ciphertext);
+        assert!(decrypted_plaintext.is_err());
+    }
 }
