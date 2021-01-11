@@ -1,11 +1,5 @@
 use anyhow::Result;
 
-pub trait EncryptionKey {
-    const KeySize: usize;
-
-    fn from_bytes(key_data: &[u8]) -> Self;
-}
-
 pub trait Cipher {
     type EncryptionKey;
     fn new(key: Self::EncryptionKey) -> Self;
@@ -18,5 +12,6 @@ pub trait Cipher {
 }
 
 pub mod aes_gcm;
-mod libsodium;
 mod key;
+
+pub use key::EncryptionKey;

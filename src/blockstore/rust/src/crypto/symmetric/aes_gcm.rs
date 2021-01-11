@@ -9,27 +9,20 @@ use super::{Cipher, EncryptionKey};
 
 // TODO The aes_gcm crate requires building with RUSTFLAGS="-Ctarget-cpu=sandybridge -Ctarget-feature=+aes,+sse2,+sse4.1,+ssse3"
 //      otherwise it won't use those instruction sets. Evaluate if there's a better crate or if we can somehow automate this in the build.
+// TODO Ring might be a better crate for this as they automatically recognize CPU capabilities. Or maybe libsodium-sys.
 
-pub struct AesKey<C: NewAead>(Key<C>);
+// TODO AES-GCM-SIV might be better than AES-GCM
 
-impl<C: NewAead> EncryptionKey for AesKey<C> {
-    const KeySize: usize = C::KeySize::USIZE;
-
-    fn from_bytes(key_data: &[u8]) -> Self {
-        assert_eq!(Self::KeySize, key_data.len(), "Invalid key size");
-        AesKey(Key::<C>::clone_from_slice(key_data))
-    }
-}
 
 pub struct AESGCM<C: NewAead + Aead> {
     cipher: C,
 }
 
 impl<C: NewAead + Aead> Cipher for AESGCM<C> {
-    type EncryptionKey = AesKey<C>;
+    type EncryptionKey = EncryptionKey<C::KeySize>;
 
     fn new(encryption_key: Self::EncryptionKey) -> Self {
-        let cipher = C::new(&encryption_key.0);
+        let cipher = C::new(encryption_key.as_bytes());
         Self {cipher}
     }
 
@@ -78,14 +71,14 @@ mod tests {
     use super::*;
 
     fn key1() -> <Aes256Gcm as Cipher>::EncryptionKey {
-        AesKey::from_bytes(
+        EncryptionKey::from_bytes(
             &hex::decode("9726ca3703940a918802953d8db5996c5fb25008a20c92cb95aa4b8fe92702d9")
                 .unwrap(),
         )
     }
 
     fn key2() -> <Aes256Gcm as Cipher>::EncryptionKey {
-        AesKey::from_bytes(
+        EncryptionKey::from_bytes(
             &hex::decode("a3703940a918802953d8db5996c5fb25008a20c92cb95aa4b8fe92702d99726c")
                 .unwrap(),
         )

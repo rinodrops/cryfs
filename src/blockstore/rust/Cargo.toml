@@ -8,9 +8,11 @@ version = "0.1.0"
 aes-gcm = {version = "^0.8.0", features = ["std"]}
 anyhow = "^1.0.37"
 cxx = {version = "^1.0.27", features = ["c++14"]}
+generic-array = "^0.14.4"
 hex = "0.4.2"
 rand = "^0.8.1"
-sodiumoxide = "^0.2.6"
+# TODO current release sodiumoxide 0.2.6 doesn't have aes yet, use current master
+sodiumoxide = {git = "https://github.com/sodiumoxide/sodiumoxide", rev = "9f6a18d40a4db253edfebac9f2ce5c22d09b1f47"}
 sysinfo = "^0.15.5"
 
 [build-dependencies]
