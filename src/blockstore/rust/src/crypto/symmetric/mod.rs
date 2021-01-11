@@ -12,6 +12,7 @@ pub trait Cipher {
 }
 
 pub mod aes_gcm;
+pub mod libsodium;
 mod key;
 
 pub use key::EncryptionKey;

@@ -11,7 +11,7 @@ use super::{Cipher, EncryptionKey};
 //      otherwise it won't use those instruction sets. Evaluate if there's a better crate or if we can somehow automate this in the build.
 // TODO Ring might be a better crate for this as they automatically recognize CPU capabilities. Or maybe libsodium-sys.
 
-// TODO AES-GCM-SIV might be better than AES-GCM
+// TODO AES-GCM-SIV or XChaCha20-Poly1305 (XChaCha20-Poly1305-ietf, chacha20poly1305_ietf, chacha20poly1305) might be better than AES-GCM
 
 
 pub struct AESGCM<C: NewAead + Aead> {
@@ -140,8 +140,16 @@ mod tests {
     fn given_differentkey_then_doesntdecrypt() {
         let cipher = Aes256Gcm::new(key1());
         let plaintext = hex::decode("0ffc9a43e15ccfbef1b0880167df335677c9005948eeadb31f89b06b90a364ad03c6b0859652dca960f8fa60c75747c4f0a67f50f5b85b800468559ea1a816173c0abaf5df8f02978a54b250bc57c7c6a55d4d245014722c0b1764718a6d5ca654976370").unwrap();
-        let mut ciphertext = cipher.encrypt(&plaintext).unwrap();
+        let ciphertext = cipher.encrypt(&plaintext).unwrap();
         let decrypted_plaintext = Aes256Gcm::new(key2()).decrypt(&ciphertext);
         assert!(decrypted_plaintext.is_err());
+    }
+
+    #[test]
+    fn test_backward_compatibility() {
+        // Test a preencrypted message to make sure we can still encrypt it
+        let cipher = Aes256Gcm::new(key1());
+        let ciphertext = hex::decode("4e19cd2f561923fe7f1042a38a827ac36bc34fa64d99d1ce01b7d883dafe12739b06562b9ce59f").unwrap();
+        assert_eq!(b"Hello World", &cipher.decrypt(&ciphertext).unwrap().as_ref());
     }
 }
