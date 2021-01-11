@@ -9,29 +9,30 @@ using blockstore::BlockStore;
 using blockstore::BlockStore2;
 using blockstore::lowtohighlevel::LowToHighLevelBlockStore;
 using blockstore::rust::RustBlockStore2;
-using cpputils::unique_ref;
 using cpputils::make_unique_ref;
+using cpputils::unique_ref;
 
-class RustBlockStoreTestFixture: public BlockStoreTestFixture {
+class RustBridgeInMemoryBlockStoreTestFixture : public BlockStoreTestFixture
+{
 public:
-  unique_ref<BlockStore> createBlockStore() override {
+  unique_ref<BlockStore> createBlockStore() override
+  {
     return make_unique_ref<LowToHighLevelBlockStore>(
         make_unique_ref<RustBlockStore2>(
-            blockstore::rust::bridge::new_inmemory_blockstore()
-        )
-    );
+            blockstore::rust::bridge::new_inmemory_blockstore()));
   }
 };
 
-INSTANTIATE_TYPED_TEST_SUITE_P(Rust_InMemory, BlockStoreTest, RustBlockStoreTestFixture);
+INSTANTIATE_TYPED_TEST_SUITE_P(Rust_InMemory, BlockStoreTest, RustBridgeInMemoryBlockStoreTestFixture);
 
-class RustBlockStore2TestFixture: public BlockStore2TestFixture {
+class RustBridgeInMemoryBlockStore2TestFixture : public BlockStore2TestFixture
+{
 public:
-  unique_ref<BlockStore2> createBlockStore() override {
+  unique_ref<BlockStore2> createBlockStore() override
+  {
     return make_unique_ref<RustBlockStore2>(
-        blockstore::rust::bridge::new_inmemory_blockstore()
-    );
+        blockstore::rust::bridge::new_inmemory_blockstore());
   }
 };
 
-INSTANTIATE_TYPED_TEST_SUITE_P(Rust_InMemory, BlockStore2Test, RustBlockStore2TestFixture);
+INSTANTIATE_TYPED_TEST_SUITE_P(Rust_InMemory, BlockStore2Test, RustBridgeInMemoryBlockStore2TestFixture);

@@ -5,10 +5,12 @@ name = "cryfs-blockstore"
 version = "0.1.0"
 
 [dependencies]
+aes-gcm = {version = "^0.8.0", features = ["std"]}
 anyhow = "^1.0.37"
 cxx = {version = "^1.0.27", features = ["c++14"]}
-sysinfo = "^0.15.5"
+hex = "0.4.2"
 rand = "^0.8.1"
+sysinfo = "^0.15.5"
 
 [build-dependencies]
 cxx-build = "^1.0.27"
