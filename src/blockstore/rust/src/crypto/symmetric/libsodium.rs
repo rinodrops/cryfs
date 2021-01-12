@@ -23,9 +23,9 @@ pub struct Aes256Gcm {
 }
 
 impl Cipher for Aes256Gcm {
-    type EncryptionKey = EncryptionKey<U32>;
+    type KeySize = U32;
 
-    fn new(encryption_key: Self::EncryptionKey) -> Result<Self> {
+    fn new(encryption_key: EncryptionKey<Self::KeySize>) -> Result<Self> {
         INIT_LIBSODIUM.call_once(|| {
             sodiumoxide::init().expect("Failed to initialize libsodium");
         });
@@ -76,10 +76,4 @@ fn convert_key(key: &EncryptionKey<U32>) -> Key {
     Key::from_slice(key.as_bytes()).expect("Invalid key size")
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::test_cipher;
-
-    test_cipher!(libsodium_aes256gcm, Aes256Gcm);
-}
+// Test cases are in cipher_tests.rs

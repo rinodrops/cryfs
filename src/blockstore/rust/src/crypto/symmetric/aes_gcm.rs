@@ -19,9 +19,9 @@ pub struct AESGCM<C: NewAead + Aead> {
 }
 
 impl<C: NewAead + Aead> Cipher for AESGCM<C> {
-    type EncryptionKey = EncryptionKey<C::KeySize>;
+    type KeySize = C::KeySize;
 
-    fn new(encryption_key: Self::EncryptionKey) -> Result<Self> {
+    fn new(encryption_key: EncryptionKey<Self::KeySize>) -> Result<Self> {
         let cipher = C::new(encryption_key.as_bytes());
         Ok(Self {cipher})
     }
@@ -67,10 +67,4 @@ fn random_nonce<Size: ArrayLength<u8>>() -> Nonce<Size> {
 
 pub type Aes256Gcm = AESGCM<_Aes256Gcm>;
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::test_cipher;
-
-    test_cipher!(aes_gcm_aes256gcm, Aes256Gcm);
-}
+// Test cases are in cipher_tests.rs

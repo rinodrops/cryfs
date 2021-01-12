@@ -1,9 +1,10 @@
 use anyhow::Result;
+use generic_array::ArrayLength;
 
 pub trait Cipher : Sized {
-    type EncryptionKey;
+    type KeySize : ArrayLength<u8>;
 
-    fn new(key: Self::EncryptionKey) -> Result<Self>;
+    fn new(key: EncryptionKey<Self::KeySize>) -> Result<Self>;
 
     fn ciphertext_size(plaintext_size: usize) -> usize;
     fn plaintext_size(ciphertext_size: usize) -> usize;

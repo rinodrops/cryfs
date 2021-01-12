@@ -176,6 +176,7 @@ dependencies = [
  "cxx",
  "cxx-build",
  "generic-array",
+ "generic-tests",
  "hex",
  "rand",
  "sodiumoxide",
@@ -264,6 +265,17 @@ checksum = "501466ecc8a30d1d3b7fc9229b122b2ce8ed6e9d9223f1138d4babb253e51817"
 dependencies = [
  "typenum",
  "version_check",
+]
+
+[[package]]
+name = "generic-tests"
+version = "0.1.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "492ca798db53d249be771ee3536caae12ff64409cd4fc68ff74eaa4264cbca12"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn",
 ]
 
 [[package]]
