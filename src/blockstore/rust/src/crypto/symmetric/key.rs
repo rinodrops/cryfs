@@ -39,7 +39,7 @@ impl <KeySize: ArrayLength<u8>> EncryptionKey<KeySize> {
     /// but it circumvents the protection because the data exists somewhere else
     /// before creating the EncryptionKey object. So we're making sure it's actually
     /// only available to test cases using cfg(test).
-    #[cfg(test)]
+    // TODO #[cfg(test)]
     pub fn from_hex(hex_str: &str) -> Result<Self> {
         Self::new(|data| {
             Ok(data.copy_from_slice(&hex::decode(hex_str)?))
