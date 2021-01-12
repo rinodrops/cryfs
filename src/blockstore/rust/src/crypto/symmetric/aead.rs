@@ -1,11 +1,10 @@
-use aes_gcm::aead::generic_array::typenum::Unsigned;
-use aes_gcm::aead::{generic_array::{ArrayLength, GenericArray}, Aead, Key, NewAead, Nonce};
-use aes_gcm::Aes256Gcm as _Aes256Gcm;
+use aead::generic_array::typenum::Unsigned;
+use aead::{generic_array::{ArrayLength, GenericArray}, Aead, Key, NewAead, Nonce};
 use anyhow::{anyhow, bail, Result, Context};
 use rand::{thread_rng, RngCore};
 use std::marker::PhantomData;
 
-use super::super::{Cipher, EncryptionKey};
+use super::{Cipher, EncryptionKey};
 
 /// AES-GCM implementation using the `aes-gcm` crate. This crate uses a software implementation of AES without hardware support.
 /// It can use hardware support in theory, but requires to be built with
@@ -15,14 +14,12 @@ use super::super::{Cipher, EncryptionKey};
 /// For CPUs with AES hardware support, we don't use this implementation, but use a different one. This is only used as a fallback
 /// for older devices without AES hardware support.
 
-use super::{NONCE_SIZE, AUTH_TAG_SIZE};
-
-pub struct AESGCM<C: NewAead + Aead> {
+pub struct AeadCipher<C: NewAead + Aead> {
     encryption_key: EncryptionKey<C::KeySize>,
     _phantom: PhantomData<C>,
 }
 
-impl<C: NewAead + Aead> Cipher for AESGCM<C> {
+impl<C: NewAead + Aead> Cipher for AeadCipher<C> {
     type KeySize = C::KeySize;
 
     fn new(encryption_key: EncryptionKey<Self::KeySize>) -> Self {
@@ -70,6 +67,8 @@ fn random_nonce<Size: ArrayLength<u8>>() -> Nonce<Size> {
     nonce
 }
 
-pub type Aes256Gcm = AESGCM<_Aes256Gcm>;
+
+// We don't create aes-256-gcm here, because we don't want to accidentally use the software implementation
+// when we could use a hardware accelerated one. See the aesgcm module.
 
 // Test cases are in cipher_tests.rs

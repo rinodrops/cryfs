@@ -13,8 +13,11 @@ pub trait Cipher : Sized {
     fn decrypt(&self, data: &[u8]) -> Result<Vec<u8>>;
 }
 
+pub mod aead;
 pub mod aesgcm;
 mod key;
 
-pub use key::EncryptionKey;
+#[cfg(test)]
+mod cipher_tests;
 
+pub use key::EncryptionKey;
