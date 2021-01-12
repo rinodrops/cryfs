@@ -6,17 +6,11 @@ use super::{aes_gcm::Aes256Gcm as aesgcm_Aes256Gcm, libsodium::Aes256Gcm as libs
 use super::super::{Cipher, EncryptionKey};
 
 fn key1<L: ArrayLength<u8>>() -> EncryptionKey<L> {
-    EncryptionKey::from_bytes(
-        &hex::decode("9726ca3703940a918802953d8db5996c5fb25008a20c92cb95aa4b8fe92702d9")
-            .unwrap(),
-    )
+    EncryptionKey::from_hex("9726ca3703940a918802953d8db5996c5fb25008a20c92cb95aa4b8fe92702d9").unwrap()
 }
 
 fn key2<L: ArrayLength<u8>>() -> EncryptionKey<L> {
-    EncryptionKey::from_bytes(
-        &hex::decode("a3703940a918802953d8db5996c5fb25008a20c92cb95aa4b8fe92702d99726c")
-            .unwrap(),
-    )
+    EncryptionKey::from_hex("a3703940a918802953d8db5996c5fb25008a20c92cb95aa4b8fe92702d99726c").unwrap()
 }
 
 #[generic_tests::define]

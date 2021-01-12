@@ -109,9 +109,7 @@ fn new_inmemory_blockstore() -> Box<RustBlockStore2Bridge> {
 }
 
 fn new_encrypted_inmemory_blockstore() -> Box<RustBlockStore2Bridge> {
-    let key = EncryptionKey::from_bytes(
-        &hex::decode("9726ca3703940a918802953d8db5996c5fb25008a20c92cb95aa4b8fe92702d9").unwrap(),
-    );
+    let key = EncryptionKey::from_hex("9726ca3703940a918802953d8db5996c5fb25008a20c92cb95aa4b8fe92702d9").unwrap();
     Box::new(RustBlockStore2Bridge(Box::new(EncryptedBlockStore::new(
         InMemoryBlockStore::new(),
         Aes256Gcm::new(key),

@@ -1,5 +1,6 @@
 use generic_array::{GenericArray, ArrayLength};
 use log::warn;
+use anyhow::Result;
 
 // TODO The 'secrets' crate looks interesting as a replacement to 'region',
 // but the dependency didn't compile for me.
@@ -16,13 +17,9 @@ pub struct EncryptionKey<KeySize: ArrayLength<u8>> {
 impl <KeySize: ArrayLength<u8>> EncryptionKey<KeySize> {
     const KeySize: usize = KeySize::USIZE;
 
-    // TODO This still leaves an unprotected time before key_data enters this function.
-    //      Can we extend the protection to the whole key generation process?
-    pub fn from_bytes(key_data: &[u8]) -> Self {
-        assert_eq!(Self::KeySize, key_data.len(), "Invalid key size");
-        // Don't use GenericArray::clone_from_slice to avoid copying to the key to the unprotected stack first
-        let mut key_data_protected = Box::new(GenericArray::default());
-        let lock_guard = region::lock(key_data_protected.as_slice().as_ptr(), key_data_protected.as_slice().len());
+    pub fn new(init: impl FnOnce (&mut [u8]) -> Result<()>) -> Result<Self> {
+        let mut key_data = Box::new(GenericArray::default());
+        let lock_guard = region::lock(key_data.as_slice().as_ptr(), key_data.as_slice().len());
         let lock_guard = match lock_guard {
             Ok(lock_guard) => Some(lock_guard),
             Err(err) => {
@@ -30,11 +27,23 @@ impl <KeySize: ArrayLength<u8>> EncryptionKey<KeySize> {
                 None
             }
         };
-        key_data_protected.as_mut_slice().copy_from_slice(key_data);
-        Self {
-            key_data: key_data_protected,
+        // TOTO mprotect would be nice too
+        init(&mut key_data)?;
+        Ok(Self {
+            key_data,
             lock_guard,
-        }
+        })
+    }
+
+    /// Create key data from a hex string. This can be super helpful for test cases
+    /// but it circumvents the protection because the data exists somewhere else
+    /// before creating the EncryptionKey object. So we're making sure it's actually
+    /// only available to test cases using cfg(test).
+    #[cfg(test)]
+    pub fn from_hex(hex_str: &str) -> Result<Self> {
+        Self::new(|data| {
+            Ok(data.copy_from_slice(&hex::decode(hex_str)?))
+        })
     }
 
     pub fn as_bytes(&self) -> &[u8] {
