@@ -3,7 +3,7 @@ use sysinfo::{System, SystemExt};
 
 use super::{BlockId, BlockStore2};
 
-use crate::crypto::symmetric::{aes_gcm::Aes256Gcm, Cipher, EncryptionKey};
+use crate::crypto::symmetric::{Cipher, EncryptionKey};
 
 pub struct EncryptedBlockStore<C: Cipher, B: BlockStore2> {
     underlying_block_store: B,

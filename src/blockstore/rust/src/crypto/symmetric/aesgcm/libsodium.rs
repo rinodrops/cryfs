@@ -3,50 +3,55 @@ use anyhow::{Result, bail, anyhow, Context};
 use std::sync::Once;
 use generic_array::{typenum::U32, GenericArray, ArrayLength};
 
-use super::{EncryptionKey, Cipher};
+use super::super::{EncryptionKey, Cipher};
 
-// TODO libsodium doesn't implement non-hw-accelerated AES.
-// We probably should have a fallback (maybe to the aes_gcm crate?) or use a library like the 'ring' crate
-// that does auto detection and provides both hw-accelerated and non-hw-accelerated versions.
-// But 'ring' in particular has the disadvantage that it doesn't mlock keys (afaik). Needs further evaluation.
+/// AES-256-GCM implementation based on libsodium. This implementation is hardware accelerated but only works
+/// on CPUs that are new enough to have that support. If the CPU doesn't support it, then `Aes256Gcm::new()`
+/// will return an error.
 
-// TODO Add 128bit fixed string to the message and verify it, see https://libsodium.gitbook.io/doc/secret-key_cryptography/aead#robustness
-
-const NONCE_SIZE: usize = 12;
-const AUTH_TAG_SIZE: usize = 16;
+use super::{NONCE_SIZE};
 
 static INIT_LIBSODIUM: Once = Once::new();
+
+fn init_libsodium() {
+    INIT_LIBSODIUM.call_once(|| {
+        sodiumoxide::init().expect("Failed to initialize libsodium");
+    });
+}
 
 pub struct Aes256Gcm {
     cipher: _Aes256Gcm,
     encryption_key: EncryptionKey<U32>,
 }
 
+impl Aes256Gcm {
+    /// Returns true, iff the hardware supports the instructions needed by this
+    /// hardware-accelerated implementation of AES
+    pub fn is_available() -> bool {
+        init_libsodium();
+        sodiumoxide::crypto::aead::aes256gcm::is_available()
+    }
+}
+
 impl Cipher for Aes256Gcm {
     type KeySize = U32;
 
-    fn new(encryption_key: EncryptionKey<Self::KeySize>) -> Result<Self> {
-        INIT_LIBSODIUM.call_once(|| {
-            sodiumoxide::init().expect("Failed to initialize libsodium");
-        });
+    fn new(encryption_key: EncryptionKey<Self::KeySize>) -> Self {
+        init_libsodium();
 
-        let cipher = _Aes256Gcm::new().map_err(|()| anyhow!("Hardware doesn't support the instructions needed for this implementation"))?;
-        Ok(Self {
+        let cipher = _Aes256Gcm::new().expect("Hardware doesn't support the instructions needed for this implementation. Please check is_available() before calling new().");
+        Self {
             cipher,
             encryption_key,
-        })
+        }
     }
 
     fn ciphertext_size(plaintext_size: usize) -> usize {
-        plaintext_size + NONCE_SIZE + AUTH_TAG_SIZE
+        super::Aes256Gcm::ciphertext_size(plaintext_size)
     }
 
     fn plaintext_size(ciphertext_size: usize) -> usize {
-        assert!(
-            ciphertext_size >= NONCE_SIZE + AUTH_TAG_SIZE,
-            "Invalid ciphertext size"
-        );
-        ciphertext_size - NONCE_SIZE - AUTH_TAG_SIZE
+        super::Aes256Gcm::plaintext_size(ciphertext_size)
     }
 
     fn encrypt(&self, plaintext: &[u8]) -> Result<Vec<u8>> {

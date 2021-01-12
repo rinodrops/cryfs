@@ -5,14 +5,17 @@ use anyhow::{anyhow, bail, Result, Context};
 use rand::{thread_rng, RngCore};
 use std::marker::PhantomData;
 
-use super::{Cipher, EncryptionKey};
+use super::super::{Cipher, EncryptionKey};
 
-// TODO The aes_gcm crate requires building with RUSTFLAGS="-Ctarget-cpu=sandybridge -Ctarget-feature=+aes,+sse2,+sse4.1,+ssse3"
-//      otherwise it won't use those instruction sets. Evaluate if there's a better crate or if we can somehow automate this in the build.
-// TODO Ring might be a better crate for this as they automatically recognize CPU capabilities. Or maybe libsodium-sys.
+/// AES-GCM implementation using the `aes-gcm` crate. This crate uses a software implementation of AES without hardware support.
+/// It can use hardware support in theory, but requires to be built with
+/// > RUSTFLAGS="-Ctarget-cpu=sandybridge -Ctarget-feature=+aes,+sse2,+sse4.1,+ssse3"
+/// for that and we don't build it with that.
+/// 
+/// For CPUs with AES hardware support, we don't use this implementation, but use a different one. This is only used as a fallback
+/// for older devices without AES hardware support.
 
-// TODO AES-GCM-SIV or XChaCha20-Poly1305 (XChaCha20-Poly1305-ietf, chacha20poly1305_ietf, chacha20poly1305) might be better than AES-GCM
-
+use super::{NONCE_SIZE, AUTH_TAG_SIZE};
 
 pub struct AESGCM<C: NewAead + Aead> {
     cipher: C,
@@ -21,9 +24,10 @@ pub struct AESGCM<C: NewAead + Aead> {
 impl<C: NewAead + Aead> Cipher for AESGCM<C> {
     type KeySize = C::KeySize;
 
-    fn new(encryption_key: EncryptionKey<Self::KeySize>) -> Result<Self> {
+    fn new(encryption_key: EncryptionKey<Self::KeySize>) -> Self {
+
         let cipher = C::new(encryption_key.as_bytes());
-        Ok(Self {cipher})
+        Self {cipher}
     }
 
     fn ciphertext_size(plaintext_size: usize) -> usize {
