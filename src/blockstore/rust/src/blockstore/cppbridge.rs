@@ -8,7 +8,7 @@ use super::{
     inmemory::InMemoryBlockStore,
     BlockStore2,
 };
-use crate::crypto::symmetric::{Cipher, aesgcm::Aes256Gcm, EncryptionKey};
+use crate::crypto::symmetric::{Cipher, Aes256Gcm, EncryptionKey};
 
 const BLOCKID_LEN: usize = 16;
 

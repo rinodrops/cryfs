@@ -13,11 +13,14 @@ pub trait Cipher : Sized {
     fn decrypt(&self, data: &[u8]) -> Result<Vec<u8>>;
 }
 
-pub mod aead;
-pub mod aesgcm;
+// TODO https://github.com/shadowsocks/crypto2 looks pretty fast, maybe we can use them for faster implementations?
+
+mod aead;
+mod aesgcm;
 mod key;
 
 #[cfg(test)]
 mod cipher_tests;
 
 pub use key::EncryptionKey;
+pub use aesgcm::{Aes128Gcm, Aes256Gcm};
