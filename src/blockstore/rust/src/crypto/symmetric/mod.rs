@@ -1,8 +1,9 @@
 use anyhow::Result;
 
-pub trait Cipher {
+pub trait Cipher : Sized {
     type EncryptionKey;
-    fn new(key: Self::EncryptionKey) -> Self;
+
+    fn new(key: Self::EncryptionKey) -> Result<Self>;
 
     fn ciphertext_size(plaintext_size: usize) -> usize;
     fn plaintext_size(ciphertext_size: usize) -> usize;
@@ -15,4 +16,8 @@ pub mod aes_gcm;
 pub mod libsodium;
 mod key;
 
+#[cfg(test)]
+mod cipher_tests;
+
 pub use key::EncryptionKey;
+

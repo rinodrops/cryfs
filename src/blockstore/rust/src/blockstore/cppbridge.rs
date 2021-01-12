@@ -8,7 +8,7 @@ use super::{
     inmemory::InMemoryBlockStore,
     BlockStore2,
 };
-use crate::crypto::symmetric::{Cipher, aes_gcm::Aes256Gcm, EncryptionKey};
+use crate::crypto::symmetric::{Cipher, aes_gcm, libsodium, EncryptionKey};
 
 const BLOCKID_LEN: usize = 16;
 
@@ -40,7 +40,7 @@ mod ffi {
         fn all_blocks(&self) -> Result<Vec<BlockId>>;
 
         fn new_inmemory_blockstore() -> Box<RustBlockStore2Bridge>;
-        fn new_encrypted_inmemory_blockstore() -> Box<RustBlockStore2Bridge>;
+        fn new_encrypted_inmemory_blockstore() -> Result<Box<RustBlockStore2Bridge>>;
     }
 }
 
@@ -108,12 +108,13 @@ fn new_inmemory_blockstore() -> Box<RustBlockStore2Bridge> {
     Box::new(RustBlockStore2Bridge(Box::new(InMemoryBlockStore::new())))
 }
 
-fn new_encrypted_inmemory_blockstore() -> Box<RustBlockStore2Bridge> {
-    let key = <Aes256Gcm as Cipher>::EncryptionKey::from_bytes(
+fn new_encrypted_inmemory_blockstore() -> Result<Box<RustBlockStore2Bridge>> {
+    let key = EncryptionKey::from_bytes(
         &hex::decode("9726ca3703940a918802953d8db5996c5fb25008a20c92cb95aa4b8fe92702d9").unwrap(),
     );
-    Box::new(RustBlockStore2Bridge(Box::new(EncryptedBlockStore::new(
+    Ok(Box::new(RustBlockStore2Bridge(Box::new(EncryptedBlockStore::new(
         InMemoryBlockStore::new(),
-        Aes256Gcm::new(key),
-    ))))
+        //aes_gcm::Aes256Gcm::new(key)?,
+        libsodium::Aes256Gcm::new(key)?,
+    )))))
 }

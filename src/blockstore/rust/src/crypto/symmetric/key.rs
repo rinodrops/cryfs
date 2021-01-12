@@ -23,3 +23,10 @@ impl <KeySize: ArrayLength<u8>> EncryptionKey<KeySize> {
         &self.key_data
     }
 }
+
+impl <KeySize: ArrayLength<u8>> std::fmt::Debug for EncryptionKey<KeySize> {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        // Hide secrets from debug output.
+        write!(f, "EncryptionKey(******)")
+    }
+}
