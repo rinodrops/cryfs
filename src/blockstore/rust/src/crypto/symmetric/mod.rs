@@ -15,9 +15,10 @@ pub trait Cipher : Sized {
 
 // TODO https://github.com/shadowsocks/crypto2 looks pretty fast, maybe we can use them for faster implementations?
 
-mod aead;
+mod aead_crate_wrapper;
 mod aesgcm;
 mod key;
+mod cipher_crate_wrapper;
 
 #[cfg(test)]
 mod cipher_tests;

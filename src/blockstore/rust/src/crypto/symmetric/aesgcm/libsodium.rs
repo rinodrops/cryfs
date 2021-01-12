@@ -1,13 +1,13 @@
+//! AES-256-GCM implementation based on libsodium. This implementation is hardware accelerated but only works
+//! on CPUs that are new enough to have that support. If the CPU doesn't support it, then `Aes256Gcm::new()`
+//! will return an error.
+
 use sodiumoxide::crypto::aead::aes256gcm::{Key, Nonce, Aes256Gcm as _Aes256Gcm};
 use anyhow::{Result, bail, anyhow, Context};
 use std::sync::Once;
 use generic_array::{typenum::U32, GenericArray, ArrayLength};
 
 use super::super::{EncryptionKey, Cipher};
-
-/// AES-256-GCM implementation based on libsodium. This implementation is hardware accelerated but only works
-/// on CPUs that are new enough to have that support. If the CPU doesn't support it, then `Aes256Gcm::new()`
-/// will return an error.
 
 use super::{NONCE_SIZE};
 

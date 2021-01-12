@@ -5,6 +5,12 @@ use log::warn;
 // TODO AES-GCM-SIV or XChaCha20-Poly1305 (XChaCha20-Poly1305-ietf, chacha20poly1305_ietf, chacha20poly1305) might be better than AES-GCM
 // TODO Add 128bit fixed string to the message and verify it, see https://libsodium.gitbook.io/doc/secret-key_cryptography/aead#robustness
 
+// TODO The aes-gcm crate currently needs
+// > RUSTFLAGS="-Ctarget-cpu=sandybridge -Ctarget-feature=+aes,+sse2,+sse4.1,+ssse3"
+// to build with hardware acceleration and we build without that, that's why we use it as the SoftwareImplemented version only.
+// The announced to do runtime feature detection in the future though, we should then benchmark it against libsodium and possibly
+// remove libsodium.
+
 mod libsodium;
 
 use super::{EncryptionKey, Cipher};
@@ -13,7 +19,7 @@ const NONCE_SIZE: usize = 12;
 const AUTH_TAG_SIZE: usize = 16;
 
 pub type Aes256Gcm_HardwareAccelerated = libsodium::Aes256Gcm;
-pub type Aes256Gcm_SoftwareImplemented = super::aead::AeadCipher<aes_gcm::Aes256Gcm>;
+pub type Aes256Gcm_SoftwareImplemented = super::aead_crate_wrapper::AeadCipher<aes_gcm::Aes256Gcm>;
 
 /// An implementation of the AES-256-GCM cipher. This does runtime CPU feature detection.
 /// If the CPU supports a hardware accelerated implementation, that one will be used, oherwise we fall back
@@ -66,4 +72,4 @@ impl Cipher for Aes256Gcm {
 }
 
 // We don't have a hardware accelerated implementation for Aes-128-gcm, so let's just use the aes_gcm software one
-pub type Aes128Gcm = super::aead::AeadCipher<aes_gcm::Aes128Gcm>;
+pub type Aes128Gcm = super::aead_crate_wrapper::AeadCipher<aes_gcm::Aes128Gcm>;

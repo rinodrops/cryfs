@@ -1,3 +1,5 @@
+//! Ciphers from the `aead` crate (and other crates following its traits, for example `aes_gcm`)
+
 use aead::generic_array::typenum::Unsigned;
 use aead::{generic_array::{ArrayLength, GenericArray}, Aead, Key, NewAead, Nonce};
 use anyhow::{anyhow, bail, Result, Context};
@@ -5,14 +7,6 @@ use rand::{thread_rng, RngCore};
 use std::marker::PhantomData;
 
 use super::{Cipher, EncryptionKey};
-
-/// AES-GCM implementation using the `aes-gcm` crate. This crate uses a software implementation of AES without hardware support.
-/// It can use hardware support in theory, but requires to be built with
-/// > RUSTFLAGS="-Ctarget-cpu=sandybridge -Ctarget-feature=+aes,+sse2,+sse4.1,+ssse3"
-/// for that and we don't build it with that.
-/// 
-/// For CPUs with AES hardware support, we don't use this implementation, but use a different one. This is only used as a fallback
-/// for older devices without AES hardware support.
 
 pub struct AeadCipher<C: NewAead + Aead> {
     encryption_key: EncryptionKey<C::KeySize>,
@@ -66,9 +60,5 @@ fn random_nonce<Size: ArrayLength<u8>>() -> Nonce<Size> {
     rng.fill_bytes(&mut nonce);
     nonce
 }
-
-
-// We don't create aes-256-gcm here, because we don't want to accidentally use the software implementation
-// when we could use a hardware accelerated one. See the aesgcm module.
 
 // Test cases are in cipher_tests.rs

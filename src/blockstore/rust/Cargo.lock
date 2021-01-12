@@ -186,6 +186,7 @@ dependencies = [
  "aead",
  "aes-gcm",
  "anyhow",
+ "cipher",
  "cxx",
  "cxx-build",
  "generic-array",
