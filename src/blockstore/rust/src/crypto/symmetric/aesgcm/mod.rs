@@ -1,5 +1,6 @@
 use anyhow::Result;
 use generic_array::typenum::U32;
+use log::warn;
 
 // TODO AES-GCM-SIV or XChaCha20-Poly1305 (XChaCha20-Poly1305-ietf, chacha20poly1305_ietf, chacha20poly1305) might be better than AES-GCM
 // TODO Add 128bit fixed string to the message and verify it, see https://libsodium.gitbook.io/doc/secret-key_cryptography/aead#robustness
@@ -33,6 +34,7 @@ impl Cipher for Aes256Gcm {
         if hardware_acceleration_available {
             Self(Aes256GcmImpl::HardwareAccelerated(libsodium::Aes256Gcm::new(encryption_key)))
         } else {
+            warn!("Your CPU doesn't offer hardware acceleration for AES. Doing cryptography will be very slow.");
             Self(Aes256GcmImpl::SoftwareImplementation(aes_gcm::Aes256Gcm::new(encryption_key)))
         }
     }
