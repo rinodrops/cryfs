@@ -1,5 +1,5 @@
 use aes_gcm::aead::generic_array::typenum::Unsigned;
-use aes_gcm::aead::{generic_array::ArrayLength, Aead, Key, NewAead, Nonce};
+use aes_gcm::aead::{generic_array::{ArrayLength, GenericArray}, Aead, Key, NewAead, Nonce};
 use aes_gcm::Aes256Gcm as _Aes256Gcm;
 use anyhow::{anyhow, bail, Result, Context};
 use rand::{thread_rng, RngCore};
@@ -18,16 +18,15 @@ use super::super::{Cipher, EncryptionKey};
 use super::{NONCE_SIZE, AUTH_TAG_SIZE};
 
 pub struct AESGCM<C: NewAead + Aead> {
-    cipher: C,
+    encryption_key: EncryptionKey<C::KeySize>,
+    _phantom: PhantomData<C>,
 }
 
 impl<C: NewAead + Aead> Cipher for AESGCM<C> {
     type KeySize = C::KeySize;
 
     fn new(encryption_key: EncryptionKey<Self::KeySize>) -> Self {
-
-        let cipher = C::new(encryption_key.as_bytes());
-        Self {cipher}
+        Self {encryption_key, _phantom: PhantomData{}}
     }
 
     fn ciphertext_size(plaintext_size: usize) -> usize {
@@ -43,9 +42,10 @@ impl<C: NewAead + Aead> Cipher for AESGCM<C> {
     }
 
     fn encrypt(&self, plaintext: &[u8]) -> Result<Vec<u8>> {
+        let cipher = C::new(GenericArray::from_slice(self.encryption_key.as_bytes()));
         let ciphertext_size = Self::ciphertext_size(plaintext.len());
         let nonce = random_nonce();
-        let cipherdata = self.cipher.encrypt(&nonce, plaintext).context("Encrypting data failed")?;
+        let cipherdata = cipher.encrypt(&nonce, plaintext).context("Encrypting data failed")?;
         let mut ciphertext = Vec::with_capacity(ciphertext_size);
         ciphertext.extend_from_slice(&nonce);
         ciphertext.extend(cipherdata); // TODO Is there a way to encrypt it without copying here? Or does it even matter?
@@ -54,9 +54,10 @@ impl<C: NewAead + Aead> Cipher for AESGCM<C> {
     }
 
     fn decrypt(&self, ciphertext: &[u8]) -> Result<Vec<u8>> {
+        let cipher = C::new(GenericArray::from_slice(self.encryption_key.as_bytes()));
         let nonce = &ciphertext[..C::NonceSize::USIZE];
         let cipherdata = &ciphertext[C::NonceSize::USIZE..];
-        let plaintext = self.cipher.decrypt(nonce.into(), cipherdata).context("Decrypting data failed")?;
+        let plaintext = cipher.decrypt(nonce.into(), cipherdata).context("Decrypting data failed")?;
         assert_eq!(Self::plaintext_size(ciphertext.len()), plaintext.len());
         Ok(plaintext)
     }
