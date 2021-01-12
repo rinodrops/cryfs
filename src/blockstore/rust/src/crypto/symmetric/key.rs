@@ -47,3 +47,9 @@ impl <KeySize: ArrayLength<u8>> std::fmt::Debug for EncryptionKey<KeySize> {
         write!(f, "EncryptionKey<{}>(****)", KeySize::USIZE)
     }
 }
+
+impl <KeySize: ArrayLength<u8>> Drop for EncryptionKey<KeySize> {
+    fn drop(&mut self) {
+        sodiumoxide::utils::memzero(&mut self.key_data);
+    }
+}
