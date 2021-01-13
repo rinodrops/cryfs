@@ -24,4 +24,7 @@ mod cipher_crate_wrapper;
 mod cipher_tests;
 
 pub use key::EncryptionKey;
+
+// export ciphers
 pub use aesgcm::{Aes128Gcm, Aes256Gcm};
+pub type XChaCha20Poly1305 = aead_crate_wrapper::AeadCipher<chacha20poly1305::XChaCha20Poly1305>;

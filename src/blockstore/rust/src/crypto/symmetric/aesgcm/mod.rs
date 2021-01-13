@@ -5,12 +5,6 @@ use log::warn;
 // TODO AES-GCM-SIV or XChaCha20-Poly1305 (XChaCha20-Poly1305-ietf, chacha20poly1305_ietf, chacha20poly1305) might be better than AES-GCM
 // TODO Add 128bit fixed string to the message and verify it, see https://libsodium.gitbook.io/doc/secret-key_cryptography/aead#robustness
 
-// TODO The aes-gcm crate currently needs
-// > RUSTFLAGS="-Ctarget-cpu=sandybridge -Ctarget-feature=+aes,+sse2,+sse4.1,+ssse3"
-// to build with hardware acceleration and we build without that, that's why we use it as the SoftwareImplemented version only.
-// The announced to do runtime feature detection in the future though, we should then benchmark it against libsodium and possibly
-// remove libsodium.
-
 mod libsodium;
 
 use super::{EncryptionKey, Cipher};

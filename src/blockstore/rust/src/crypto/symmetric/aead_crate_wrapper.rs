@@ -8,6 +8,15 @@ use std::marker::PhantomData;
 
 use super::{Cipher, EncryptionKey};
 
+// TODO The aes-gcm crate currently needs
+// > RUSTFLAGS="-Ctarget-cpu=sandybridge -Ctarget-feature=+aes,+sse2,+sse4.1,+ssse3"
+// to build with hardware acceleration and we build without that, that's why we use it as the SoftwareImplemented version only.
+// The announced to do runtime feature detection in the future though, we should then benchmark it against libsodium and possibly
+// remove libsodium.
+// TODO The chacha20-poly1305 crate needs
+// > RUSTFLAGS="-Ctarget-feature=+avx2"
+// or it won't use AVX2.
+
 pub struct AeadCipher<C: NewAead + Aead> {
     encryption_key: EncryptionKey<C::KeySize>,
     _phantom: PhantomData<C>,

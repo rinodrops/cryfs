@@ -4,6 +4,7 @@ use generic_array::ArrayLength;
 use rand::{rngs::StdRng, RngCore, SeedableRng};
 
 use super::aesgcm::{Aes256Gcm_SoftwareImplemented, Aes256Gcm_HardwareAccelerated, Aes256Gcm, Aes128Gcm};
+use super::XChaCha20Poly1305;
 use super::{Cipher, EncryptionKey};
 
 fn key<L: ArrayLength<u8>>(seed: u64) -> EncryptionKey<L> {
@@ -61,6 +62,9 @@ mod enc_dec {
         assert!(decrypted_plaintext.is_err());
     }
 
+    #[instantiate_tests(<XChaCha20Poly1305, XChaCha20Poly1305>)]
+    mod xchacha20poly1305 {}
+
     #[instantiate_tests(<Aes128Gcm, Aes128Gcm>)]
     mod aes128gcm {}
 
@@ -109,6 +113,9 @@ mod basics {
         );
     }
 
+    #[instantiate_tests(<XChaCha20Poly1305>)]
+    mod xchacha20poly1305 {}
+
     #[instantiate_tests(<Aes128Gcm>)]
     mod aes128gcm {}
 
@@ -120,6 +127,30 @@ mod basics {
 
     #[instantiate_tests(<Aes256Gcm>)]
     mod aes256gcm {}
+}
+
+mod xchacha20poly1305 {
+    use super::*;
+
+    #[test]
+    fn test_backward_compatibility() {
+        // Test a preencrypted message to make sure we can still encrypt it
+        let cipher = XChaCha20Poly1305::new(key(1));
+        let ciphertext = hex::decode("4bbf95c3a8a08d5726c3a9cbf8d49c9b83d6214de41264ede9865f354a2ebc869dbcf937d6c854c8e9f1e670e0874aa8d3e357").unwrap();
+        assert_eq!(b"Hello World", &cipher.decrypt(&ciphertext).unwrap().as_ref());
+    }    
+}
+
+mod aes_128_gcm {
+    use super::*;
+
+    #[test]
+    fn test_backward_compatibility() {
+        // Test a preencrypted message to make sure we can still encrypt it
+        let cipher = Aes128Gcm::new(key(1));
+        let ciphertext = hex::decode("a42cd01044008c5cc8aa77e8abd6e4ec2b7574bba3b542919b1cb7f6e3c6c41c79e627525364d4").unwrap();
+        assert_eq!(b"Hello World", &cipher.decrypt(&ciphertext).unwrap().as_ref());
+    }
 }
 
 mod aes_256_gcm {
@@ -138,18 +169,6 @@ mod aes_256_gcm {
         // Test a preencrypted message to make sure we can still encrypt it
         let cipher = Aes256Gcm_HardwareAccelerated::new(key(1));
         let ciphertext = hex::decode("4821ee76a61a51db1dca87a4450924787d989c3730d2353e9a4697cbb644bef9f5f7ada578a5c2").unwrap();
-        assert_eq!(b"Hello World", &cipher.decrypt(&ciphertext).unwrap().as_ref());
-    }
-}
-
-mod aes_128_gcm {
-    use super::*;
-
-    #[test]
-    fn test_backward_compatibility() {
-        // Test a preencrypted message to make sure we can still encrypt it
-        let cipher = Aes128Gcm::new(key(1));
-        let ciphertext = hex::decode("a42cd01044008c5cc8aa77e8abd6e4ec2b7574bba3b542919b1cb7f6e3c6c41c79e627525364d4").unwrap();
         assert_eq!(b"Hello World", &cipher.decrypt(&ciphertext).unwrap().as_ref());
     }
 }
