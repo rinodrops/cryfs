@@ -8,7 +8,7 @@ Build changes:
 
 Improvements:
 * Display the file system configuration when mounting a file system
-* Now shows a better error message when failing to load the config file and distinguishes between "wrong password" and "config file not found".
+* Now shows a better error message when failing to load the config file that distinguishes between "wrong password" and "config file not found".
 
 New features:
 * Add support for atime mount options (noatime, strictatime, relatime, atime, nodiratime).
@@ -17,6 +17,9 @@ New features:
   or corrupted file systems if a power outage happens while writing.
 * Add an --immediate flag to cryfs-unmount that tries to unmount immediately and doesn't wait for processes to release their locks on the file system.
 * Add a --create-missing-basedir and --create-missing-mountpoint flag to create the base directory and mount directory respectively, if they don't exist, skipping the confirmation prompt.
+
+Other:
+* Updated to crypto++ 8.4
 
 
 Version 0.10.3 (unreleased)

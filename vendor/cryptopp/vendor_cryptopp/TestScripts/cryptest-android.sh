@@ -3,73 +3,74 @@
 # ====================================================================
 # Tests Android cross-compiles
 #
-# Crypto++ Library is copyrighted as a compilation and (as of version 5.6.2)
-# licensed under the Boost Software License 1.0, while the individual files
-# in the compilation are all public domain.
-#
 # See http://www.cryptopp.com/wiki/Android_(Command_Line) for more details
 # ====================================================================
-set +e
 
-if [ -z $(command -v ./setenv-android-gcc.sh) ]; then
-	echo "Failed to locate setenv-android-gcc.sh"
-	ls -Al *.sh
-	[[ "$0" = "${BASH_SOURCE[0]}" ]] && exit 1 || return 1
+if [ -z "$(command -v ./setenv-android.sh)" ]; then
+    echo "Failed to locate setenv-android.sh"
+    [[ "$0" = "${BASH_SOURCE[0]}" ]] && exit 1 || return 1
 fi
 
-if [ -z "${PLATFORM-}" ]; then
-	PLATFORMS=(armeabi armeabi-v7a armv7a-neon aarch64 mipsel mipsel64 x86 x86_64)
-else
-	PLATFORMS=(${PLATFORM})
+# Temp directory
+if [[ -z "$TMPDIR" ]]; then
+    TMPDIR="$HOME/tmp"
+    mkdir -p "$TMPDIR"
 fi
-RUNTIMES=(gnu-static gnu-shared stlport-static stlport-shared) #llvm-static llvm-shared
 
-for platform in ${PLATFORMS[@]}
+MAKE_JOBS=2
+
+# Cleanup old artifacts
+rm -rf "$TMPDIR/build.failed" 2>/dev/null
+rm -rf "$TMPDIR/build.log" 2>/dev/null
+
+PLATFORMS=(armv7a aarch64 x86 x86_64)
+
+for platform in "${PLATFORMS[@]}"
 do
-	for runtime in ${RUNTIMES[@]}
-	do
-		make -f GNUmakefile-cross distclean > /dev/null 2>&1
+    # setenv-android.sh reads these two variables for configuration info.
+    export ANDROID_API="23"
+    export ANDROID_CPU="$platform"
 
-		echo
-		echo "===================================================================="
-		echo "Testing for Android support of $platform using $runtime"
+    make -f GNUmakefile-cross distclean > /dev/null 2>&1
 
-		# Test if we can set the environment for the platform
-		./setenv-android-gcc.sh "$platform" "$runtime"
+    echo
+    echo "===================================================================="
+    echo "Testing for Android support of $platform"
 
-		if [ "$?" -ne "0" ];
-		then
-			echo
-			echo "There were problems testing $platform with $runtime"
-			echo "$platform:$runtime ==> FAILURE" >> /tmp/build.log
+    # Test if we can set the environment for the platform
+    if ! ./setenv-android.sh > /dev/null 2>&1;
+    then
+        echo
+        echo "There were problems testing $platform"
+        echo "$platform ==> SKIPPED" >> "$TMPDIR/build.log"
 
-			touch /tmp/build.failed
-			continue
-		fi
+        continue
+    fi
 
-		echo
-		echo "Building for $platform using $runtime..."
-		echo
+    echo
+    echo "Building for $platform..."
+    echo
 
-		# run in subshell to not keep any env vars
-		(
-			source ./setenv-android-gcc.sh "$platform" "$runtime" > /dev/null 2>&1
-			make -f GNUmakefile-cross static dynamic cryptest.exe
-			if [ "$?" -eq "0" ]; then
-				echo "$platform:$runtime ==> SUCCESS" >> /tmp/build.log
-			else
-				echo "$platform:$runtime ==> FAILURE" >> /tmp/build.log
-				touch /tmp/build.failed
-			fi
-		)
-	done
+    # run in subshell to not keep any envars
+    (
+        source ./setenv-android.sh
+        if make -k -j "$MAKE_JOBS" -f GNUmakefile-cross static dynamic cryptest.exe;
+        then
+            echo "$platform ==> SUCCESS" >> "$TMPDIR/build.log"
+        else
+            echo "$platform ==> FAILURE" >> "$TMPDIR/build.log"
+            touch "$TMPDIR/build.failed"
+        fi
+    )
 done
 
-cat /tmp/build.log
+echo ""
+echo "====================================================="
+cat "$TMPDIR/build.log"
 
 # let the script fail if any of the builds failed
-if [ -f /tmp/build.failed ]; then
-	[[ "$0" = "${BASH_SOURCE[0]}" ]] && exit 1 || return 1
+if [ -f "$TMPDIR/build.failed" ]; then
+    [[ "$0" = "${BASH_SOURCE[0]}" ]] && exit 1 || return 1
 fi
 
 [[ "$0" = "${BASH_SOURCE[0]}" ]] && exit 0 || return 0
