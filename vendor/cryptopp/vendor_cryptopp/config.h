@@ -736,6 +736,12 @@ NAMESPACE_END
 #  if !defined(__APPLE__)
 #   define CRYPTOPP_ARM_ACLE_AVAILABLE 1
 #  endif
+#  if defined(__APPLE__)
+#   include "TargetConditionals.h"
+#   if !defined(TARGET_OS_IPHONE) && !defined(TARGET_IPHONE_SIMULATOR)
+#    define CRYPTOPP_ARM_ACLE_AVAILABLE 1
+#   endif
+#  endif
 # endif
 #endif
 
